@@ -26,3 +26,4 @@ python-dotenv
 #torch==2.9.0
 #git+https://github.com/huggingface/transformers#python 3.10.10
 beautifulsoup4
+yt-dlp
