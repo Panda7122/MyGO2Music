@@ -29,7 +29,9 @@ model = AudioFlamingo3ForConditionalGeneration.from_pretrained("nvidia/audio-fla
                                                             device_map='auto')
 processor = AutoProcessor.from_pretrained("nvidia/audio-flamingo-3-hf")
 
-prompt = "Give a 5 to 10 labels for the music in terms of emotion, atmosphere and vibes"
+prompt = ("Give 3 to 5 labels for the music in terms of emotion, atmosphere and vibes."
+          "It is preferable if the labels can also describe images. "
+          "Don't include any headers like '1.', 'Emotions:', etc.")
 
 messages = [
     {
@@ -55,7 +57,6 @@ for file in tqdm(audio_files, desc='Audio files'):
         generated_ids = model.generate(**inputs)
         generated_ids = generated_ids[:, inputs['input_ids'].size(1):]
         response = processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
-        print(os.path.basename(file), '\n', response)
         result.append({'song name': os.path.basename(file), 'description': response})
     except Exception as e:
         print(f"Failed handling {file}: {e}")
