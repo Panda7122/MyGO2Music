@@ -35,13 +35,13 @@ for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
     
     top_k = torch.topk(logits_per_image, 3)
     bottom_k = torch.topk(logits_per_image, 3, largest=False)
-
+    
     results.append({
         "image": image_file,
-        "top_3_songs": [songs[i] for i in top_k.indices.cpu()],
-        "top_3_scores": [round(float(s), 4) for s in top_k.values.cpu()],
-        "bottom_3_songs": [songs[i] for i in bottom_k.indices.cpu()],
-        "bottom_3_scores": [round(float(s), 4) for s in bottom_k.values.cpu()]
+        "top_3_songs": [songs[i] for i in top_k.indices[0].cpu()],
+        "top_3_scores": [round(float(s), 4) for s in top_k.values[0].cpu()],
+        "bottom_3_songs": [songs[i] for i in bottom_k.indices[0].cpu()],
+        "bottom_3_scores": [round(float(s), 4) for s in bottom_k.values[0].cpu()]
     })
 
 # Save results
