@@ -3,15 +3,20 @@ import torch
 import pandas as pd
 from PIL import Image
 from tqdm import tqdm
-from transformers import CLIPProcessor, CLIPModel
+from transformers import CLIPProcessor, CLIPModel, CLIPConfig
 
 IMAGE_FOLDER = "mygo_image"
 CSV_FILE = "description_AF3.csv"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+#dtype = 
 
-# Load CLIP
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(DEVICE)
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+# Load Long CLIP
+model_id = ("zer0int/LongCLIP-GmP-ViT-L-14")
+config = CLIPConfig.from_pretrained(model_id)
+config.text_config.max_position_embeddings = 248
+model = CLIPModel.from_pretrained(model_id, config=config).to(DEVICE)
+processor = CLIPProcessor.from_pretrained(model_id, padding="max_length", max_length=248)
+
 
 # Load CSV: expecting name + description columns
 df = pd.read_csv(CSV_FILE)
@@ -29,7 +34,7 @@ for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
     image_path = os.path.join(IMAGE_FOLDER, image_file)
     image = Image.open(image_path).convert("RGB")
 
-    inputs = processor(text=descriptions, images=image, return_tensors="pt", padding=True).to(DEVICE)
+    inputs = processor(text=descriptions, images=image, return_tensors="pt", padding="max_length").to(DEVICE)
     outputs = model(**inputs)
     logits_per_image = outputs.logits_per_image # this is the image-text similarity score
     

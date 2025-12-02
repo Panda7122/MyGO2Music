@@ -26,11 +26,12 @@ audio_files = [os.path.join(AUDIO_DIR, a) for a in audio_files]
 
 model = AudioFlamingo3ForConditionalGeneration.from_pretrained("nvidia/audio-flamingo-3-hf" ,
                                                             quantization_config=bnb_config,
+                                                            torch_dtype=torch.float16,
                                                             device_map='auto')
 processor = AutoProcessor.from_pretrained("nvidia/audio-flamingo-3-hf")
 
-prompt = ("Give 3 to 5 labels for the music in terms of emotion, atmosphere and vibes."
-          "It is preferable if the labels can also describe images. "
+prompt = ("Describe the music in terms of emotion, atmosphere and vibes."
+          "It is preferable if the description can also describe images. "
           "Don't include any headers like '1.', 'Emotions:', etc.")
 
 messages = [
@@ -54,7 +55,7 @@ for file in tqdm(audio_files, desc='Audio files'):
             return_dict=True,
         ).to(model.device, dtype=torch.float16)   
             
-        generated_ids = model.generate(**inputs, max_new_tokens=77)
+        generated_ids = model.generate(**inputs, max_new_tokens=248)
         generated_ids = generated_ids[:, inputs['input_ids'].size(1):]
         response = processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
         result.append({'song name': os.path.basename(file), 'description': response})
