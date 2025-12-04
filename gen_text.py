@@ -30,9 +30,10 @@ model = AudioFlamingo3ForConditionalGeneration.from_pretrained("nvidia/audio-fla
                                                             device_map='auto')
 processor = AutoProcessor.from_pretrained("nvidia/audio-flamingo-3-hf")
 
-prompt = ("Describe the music in terms of emotion, atmosphere and vibes."
-          "It is preferable if the description can also describe images. "
-          "Don't include any headers like '1.', 'Emotions:', etc.")
+prompt = ("Describe the music only through its emotional tone, atmosphere, and the imagery it evokes."
+          "Focus on mood, energy, emotional color, and sensory impressions."
+          "DO NOT naming genres, styles, instruments, cultural references, or any terms related to specific regions or identities."
+          "Write one natural descriptive paragraph without section titles or lists.")
 
 messages = [
     {
