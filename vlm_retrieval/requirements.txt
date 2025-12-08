@@ -1,0 +1,12 @@
+tqdm
+numpy
+pandas
+beautifulsoup4
+selenium
+yt-dlp
+requests
+
+transformers
+accelerate
+pillow
+torchvision
