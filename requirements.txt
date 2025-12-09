@@ -29,3 +29,9 @@ python-dotenv
 #bitsandbytes>=0.46.1
 beautifulsoup4
 yt-dlp
+
+selenium
+transformers
+accelerate
+pillow
+torchvision
