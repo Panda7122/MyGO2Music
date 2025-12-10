@@ -1,102 +1,68 @@
 import torch
-import glob
 import json
-import os
 import tqdm
-from argparse import ArgumentParser
-from PIL import Image
-from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 with open('vlm_retrieval/vlm_result.json', 'r') as f:
     dataset = json.load(f)
     
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-model = Qwen2VLForConditionalGeneration.from_pretrained(
-    "Qwen/Qwen2-VL-2B-Instruct", dtype="auto", device_map="auto"
-)
-processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct")
 
-conversation = [
-    {
-        "role": "user",
-        "content": [
-            {
-                "type": "text", 
-                "text": ("You are a music generation expert. Based on the following image description, generate a detailed music prompt for a funny and humorous song. "
-                         "Output only the music prompt as plain text, without any additional formatting. "
-                        "The prompt should prioritize: humor and comedic tone, matching the image's funny elements, genre, BPM, mood, timbre, rhythm, melody, key/tonality, and atmosphere. "
-                        "Be specific and descriptive to help generate the most matching and entertaining song. \n\nImage description:")
-            },
-            {
-                "type": "text"
-            }
-        ],
-    }
-]
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-4B-Instruct-2507")
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-4B-Instruct-2507").to(DEVICE)
+
+system_instruction = """You are a creative AI Music Composer. 
+Your task is to convert an image description into a specific AUDIO/MUSIC prompt.
+Do NOT describe what is in the image. instead, describe the SOUND, GENRE, and MOOD that fits the image.
+Make it funny and entertaining. Keep it under 40 words."""
+
+# 範例 (Few-Shot)
+example_1_input = "Image description: A fat orange cat sleeping on a computer keyboard."
+example_1_output = "A lazy, comedic jazz tune with a slow tuba bassline. The rhythm is clumsy and sleepy, perfect for a heavy cat napping on keys. Lo-fi style."
 result = []
 for data in tqdm.tqdm(dataset):
     name = data['name']
     description = data['description']
-    conversation[0]["content"][1]['text']=description
-    text_prompt = processor.apply_chat_template(conversation, add_generation_prompt=True)
-    # Excepted output: '<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>Describe this image.<|im_end|>\n<|im_start|>assistant\n'
+    conversation = [
+        {
+            "role": "user",
+            "content": f"""{system_instruction}
 
-    inputs = processor(
-        text=[text_prompt], padding=True, return_tensors="pt"
-    )
-    inputs = inputs.to(DEVICE)
+Example:
+Input: {example_1_input}
+Output: {example_1_output}
+
+Task:
+Input: Image description: {description}
+Output:"""
+        }
+    ]
+    text_prompt = tokenizer.apply_chat_template(conversation, 
+                                                add_generation_prompt=True, 
+                                                tokenize=True,
+                                                return_dict=True,
+                                                return_tensors="pt").to(DEVICE)
 
     # Inference: Generation of the output
-    output_ids = model.generate(
-        **inputs,
-        max_new_tokens=256,
-        min_new_tokens=64,
-        do_sample=True,
-        temperature=0.8,
-        top_p=0.9,
-        repetition_penalty=1.15,
-        no_repeat_ngram_size=3,
-    )
-    generated_ids = [
-        output_ids[len(input_ids) :]
-        for input_ids, output_ids in zip(inputs.input_ids, output_ids)
-    ]
-    output_texts = processor.batch_decode(
-        generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True
-    )
-    prompt = output_texts[0]
-    # Basic sanity checks: ensure non-trivial length and avoid single-word repetition
-    def is_bad(text: str) -> bool:
-        t = text.strip()
-        if len(t.split()) < 12:
-            return True
-        # check repeated single token dominating output
-        tokens = t.split()
-        most = max({w: tokens.count(w) for w in set(tokens)}, key=lambda k: tokens.count(k))
-        if tokens.count(most) / max(1, len(tokens)) > 0.6:
-            return True
-        return False
-
-    # If bad, attempt one regeneration with stronger constraints
-    if is_bad(prompt):
+    prompt = ""
+    while len(prompt) == 0:
         output_ids = model.generate(
-            **inputs,
-            max_new_tokens=320,
-            min_new_tokens=96,
-            do_sample=True,
-            temperature=0.9,
-            top_p=0.92,
-            repetition_penalty=1.2,
-            no_repeat_ngram_size=4,
+            **text_prompt,
+            max_new_tokens=80,
+            min_new_tokens=10,
+            do_sample=True,    
+            temperature=0.7,
+            repetition_penalty=1.1
         )
-        generated_ids = [
-            output_ids[len(input_ids) :]
-            for input_ids, output_ids in zip(inputs.input_ids, output_ids)
-        ]
-        output_texts = processor.batch_decode(
-            generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True
-        )
-        prompt = output_texts[0]
+
+        prompt = tokenizer.decode(output_ids[0][text_prompt["input_ids"].shape[-1]:], skip_special_tokens=True)
+        last_punct = max(prompt.rfind('.'), prompt.rfind('!'), prompt.rfind('?'))
+        if last_punct != -1:
+            prompt = prompt[:last_punct+1]
+        if len(prompt) > 200:
+            prompt = prompt[:200]
+            last_punct = max(prompt.rfind('.'), prompt.rfind('!'), prompt.rfind('?'))
+            prompt = prompt[:last_punct+1]
     tqdm.tqdm.write(f"{name}: {prompt}")
     result.append(
         {
