@@ -64,7 +64,7 @@ def generate_SUNO(dataset):
         
 def generate_MusicGen(dataset):
     # MusicGen may have issues with long prompts
-    model_id = "facebook/musicgen-medium"
+    model_id = "facebook/musicgen-large"
     from transformers import AutoProcessor, MusicgenForConditionalGeneration
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     model = MusicgenForConditionalGeneration.from_pretrained(model_id).to("cuda")
