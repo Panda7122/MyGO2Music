@@ -7,7 +7,7 @@ import time
 import os
 import math
 from urllib.parse import urlparse
-
+import json
 #!/usr/bin/env python3
 """
 get_mygo_image.py
@@ -27,13 +27,19 @@ def main():
     for i in range(1, total_pages+1):
         print(f"page {i}")
         res = requests.get(f"{api_url}?page={i}&limit=100&order=id")
+        
         data=  res.json()['data']
         for img_data in data:
             url = img_data['url']
             ext = os.path.splitext( img_data['filename'])[1]
             filename = f"{img_data['id']}_{img_data['alt']}{ext}"
             resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-            resp.raise_for_status()
+            if resp.headers['Content-Type'] == 'application/json; charset=utf-8':
+                content = resp.json()
+                if content['code'] != 200:
+                    print(f"{url} fail with error code {content['code']}\n message: {content['message']}")
+                    continue
+
             save_path = os.path.join('./mygo_image/', filename)
             with open(save_path, "wb") as f:
                 f.write(resp.content)
