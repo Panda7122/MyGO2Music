@@ -36,6 +36,7 @@ def main():
         lambda d: d.execute_script("return document.readyState") == "complete"
     )
     time.sleep(1)
+    print('loading website...')
     try:
         btn = WebDriverWait(driver, TIMEOUT).until(
             lambda d: d.find_element("xpath", "//button[normalize-space(.)='×']")
@@ -47,10 +48,17 @@ def main():
     while True:
         last_height = driver.execute_script("return document.body.scrollHeight")
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
+        while True:
+            loading_gifs = driver.find_elements("xpath", "//img[contains(@src, '/loading.gif')]")
+            if not loading_gifs:
+                print('all image done loading')
+                break
+            print(f"Found {len(loading_gifs)} loading.gif image(s)")
+            time.sleep(0.5)
         new_height = driver.execute_script("return document.body.scrollHeight")
         if new_height == last_height:
             break
+    
     soup = BeautifulSoup(driver.page_source, "html.parser")
     rows = soup.find_all("div", class_="image-row")
     print(f"Found {len(rows)} image-row div(s)")
@@ -59,6 +67,7 @@ def main():
         print(f"row {i}: {len(imgs)} img(s)")
         for img_html in imgs:
             src = img_html.get("src")
+            
             if not src:
                 continue
             filename = src.split('/')[-1].split('?')[0]
