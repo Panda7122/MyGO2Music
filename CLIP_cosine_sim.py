@@ -26,7 +26,6 @@ descriptions = df["description"].tolist()
 results = []
 
 # Process each image
-#TODO: CLIP Only takes max 77 tokens
 for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
     if not image_file.lower().endswith((".png", ".jpg", ".jpeg", ".bmp")):
         continue
