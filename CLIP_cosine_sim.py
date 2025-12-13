@@ -6,7 +6,7 @@ from tqdm import tqdm
 from transformers import CLIPProcessor, CLIPModel, CLIPConfig
 
 IMAGE_FOLDER = "mygo_image"
-CSV_FILE = "description_AF3.csv"
+CSV_FILE = "description_fma_small_AF3.csv"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 #dtype = 
 
@@ -50,5 +50,5 @@ for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
 
 # Save results
 out_df = pd.DataFrame(results)
-out_df.to_csv("clip_similarity_results.csv", index=False)
+out_df.to_csv("clip_similarity_results_fma_small.csv", index=False)
 
