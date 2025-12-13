@@ -1,7 +1,7 @@
 import utils
 import librosa
 import os
-from transformers import AutoProcessor, Qwen2AudioForConditionalGeneration, AudioFlamingo3ForConditionalGeneration
+from transformers import AutoProcessor, AudioFlamingo3ForConditionalGeneration
 from transformers import BitsAndBytesConfig
 import torch
 from tqdm import tqdm
@@ -13,11 +13,21 @@ bnb_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype=torch.float16,
 )
 
-AUDIO_DIR = 'audio/'
+AUDIO_DIR = './'
+AUDIO_EXTENSIONS = ('.mp3', '.wav')
 
-audio_files = os.listdir(AUDIO_DIR)
-audio_files = [os.path.join(AUDIO_DIR, a) for a in audio_files]
-
+audio_files = []
+for item in os.listdir(AUDIO_DIR):
+    item_path = os.path.join(AUDIO_DIR, item)
+    print(item_path)
+    if os.path.isfile(item_path) and item_path.lower().endswith(AUDIO_EXTENSIONS):
+        audio_files.append(item_path)
+    elif os.path.isdir(item_path):
+        for sub_item in os.listdir(item_path):
+            sub_item_path = os.path.join(item_path, sub_item)
+            if os.path.isfile(sub_item_path) and sub_item_path.lower().endswith(AUDIO_EXTENSIONS):
+                audio_files.append(sub_item_path)
+                
 # model = Qwen2AudioForConditionalGeneration.from_pretrained("Qwen/Qwen2-Audio-7B" ,
 #                                                            trust_remote_code=True, 
 #                                                            quantization_config=bnb_config,
@@ -63,5 +73,5 @@ for file in tqdm(audio_files, desc='Audio files'):
     except Exception as e:
         print(f"Failed handling {file}: {e}")
 df = pd.DataFrame(result)
-df.to_csv("description_AF3.csv", index=True)
+df.to_csv(f"description_{AUDIO_DIR}_AF3.csv", index=True)
 print("Done")
