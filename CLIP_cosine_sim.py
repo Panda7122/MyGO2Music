@@ -33,7 +33,7 @@ for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
     image_path = os.path.join(IMAGE_FOLDER, image_file)
     image = Image.open(image_path).convert("RGB")
 
-    inputs = processor(text=descriptions, images=image, return_tensors="pt", padding="max_length").to(DEVICE)
+    inputs = processor(text=descriptions, images=image, return_tensors="pt", padding="max_length", truncation=True).to(DEVICE)
     outputs = model(**inputs)
     logits_per_image = outputs.logits_per_image # this is the image-text similarity score
     
