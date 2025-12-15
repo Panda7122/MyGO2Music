@@ -32,10 +32,11 @@ text_embs = []
 # Get text embeddings
 for i in range(0, len(descriptions), BATCH_SIZE):
     batch_descriptions = descriptions[i:i + BATCH_SIZE]
-    inputs = tokenizer(batch_descriptions, return_tensors="pt", padding="max_length", truncation=True).to(DEVICE)
-    outputs = text_emb_model(**inputs)
-    batch_text_embs = outputs.text_embeds
-    batch_text_embs /= batch_text_embs.norm(dim=-1, keepdim=True)
+    with torch.no_grad():
+        inputs = tokenizer(batch_descriptions, return_tensors="pt", padding="max_length", truncation=True).to(DEVICE)
+        outputs = text_emb_model(**inputs)
+        batch_text_embs = outputs.text_embeds
+        batch_text_embs /= batch_text_embs.norm(dim=-1, keepdim=True)
     text_embs.append(batch_text_embs)
     
     
