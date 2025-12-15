@@ -69,7 +69,10 @@ for file in tqdm(audio_files, desc='Audio files'):
         generated_ids = model.generate(**inputs, max_new_tokens=248)
         generated_ids = generated_ids[:, inputs['input_ids'].size(1):]
         response = processor.batch_decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
-        result.append({'song name': os.path.basename(file), 'description': response})
+        result.append({
+            'song name': os.path.basename(file), 
+            'description': response,
+            'path': os.path.relpath(file, AUDIO_DIR)})
     except Exception as e:
         print(f"Failed handling {file}: {e}")
 df = pd.DataFrame(result)
