@@ -6,7 +6,7 @@ from tqdm import tqdm
 from transformers import CLIPProcessor, CLIPModel, CLIPConfig, CLIPTextModelWithProjection, AutoTokenizer
 
 IMAGE_FOLDER = "mygo_image"
-CSV_FILE = "description_AF3.csv"
+CSV_FILE = "description_fma_AF3.csv"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 100
 #dtype = 
