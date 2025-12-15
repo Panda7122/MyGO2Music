@@ -73,5 +73,5 @@ for file in tqdm(audio_files, desc='Audio files'):
     except Exception as e:
         print(f"Failed handling {file}: {e}")
 df = pd.DataFrame(result)
-df.to_csv(f"description_{AUDIO_DIR}_AF3.csv", index=True)
+df.to_csv(f"description_fma_AF3.csv", index=True)
 print("Done")
