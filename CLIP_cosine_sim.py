@@ -39,7 +39,7 @@ for i in range(0, len(descriptions), BATCH_SIZE):
     text_embs.append(batch_text_embs)
     
     
-text_embs = torch.cat(text_embs, dim=0).to(DEVICE)
+text_embs = torch.cat(text_embs, dim=0).cpu()
 
 
 # Process each image
@@ -53,6 +53,7 @@ for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
         inputs = processor(images=image, return_tensors="pt").to(DEVICE)
         outputs = model.get_image_features(**inputs)
         outputs /= outputs.norm(dim=-1, keepdim=True)
+        outputs = outputs.cpu()
         
         logits_per_image = (outputs @ text_embs.T).squeeze(0)
         
@@ -61,10 +62,10 @@ for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
     
     results.append({
         "image": image_file,
-        "top_3_songs": [songs[int(i)] for i in top_k.indices.cpu().detach()],
-        "top_3_scores": [round(float(s), 4) for s in top_k.values.cpu().detach()],
-        "bottom_3_songs": [songs[int(i)] for i in bottom_k.indices.cpu().detach()],
-        "bottom_3_scores": [round(float(s), 4) for s in bottom_k.values.cpu().detach()]
+        "top_3_songs": [songs[int(i)] for i in top_k.indices.detach()],
+        "top_3_scores": [round(float(s), 4) for s in top_k.values.detach()],
+        "bottom_3_songs": [songs[int(i)] for i in bottom_k.indices.detach()],
+        "bottom_3_scores": [round(float(s), 4) for s in bottom_k.values.detach()]
     })
     del inputs, outputs, logits_per_image, top_k, bottom_k
     torch.cuda.empty_cache()
