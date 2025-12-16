@@ -5,3 +5,5 @@ mygo_image/*
 audio/*
 .env
 music/
+mygo_image
+model

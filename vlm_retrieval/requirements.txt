@@ -5,8 +5,9 @@ beautifulsoup4
 selenium
 yt-dlp
 requests
-
 transformers
 accelerate
 pillow
 torchvision
+laion_clap
+peft
