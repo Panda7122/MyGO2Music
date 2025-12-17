@@ -12,30 +12,23 @@ from transformers import (
 BASE_MODEL_NAME = "Qwen/Qwen3-4B-Instruct-2507"
 
 parser = ArgumentParser()
-parser.add_argument("vlm_description", type=str)
-parser.add_argument("prompts_file", type=str)
+parser.add_argument("finetune_data", type=str)
 args = parser.parse_args()
 
 # create dataset
-with open(args.vlm_description, "r") as f:
-    vlm_description = json.load(f)
-img_names = [item["name"] for item in vlm_description]
-img_descriptions = [item["description"] for item in vlm_description]
-
-with open(args.prompts_file, "r") as f:
-    prompts_file = json.load(f)
-img_prompts = [item["prompt"] for item in prompts_file]
+with open(args.finetune_data, "r") as f:
+    finetune_data = json.load(f)
 
 system_instruction = """You are a creative AI Music Composer. 
 Your task is to convert an image description into a specific AUDIO/MUSIC prompt."""
 
 data_list = []
-for i in range(len(img_names)):
+for i in range(len(finetune_data)):
     item = {
         "messages": [
             {"role": "system", "content": system_instruction},
-            {"role": "user", "content": f"Image description: {img_descriptions[i]}"},
-            {"role": "assistant", "content": img_prompts[i]}
+            {"role": "user", "content": f"Image description: {finetune_data[i]["img_description"]}"},
+            {"role": "assistant", "content": finetune_data[i]["song_description"]}
         ]
     }
     data_list.append(item)
@@ -112,9 +105,5 @@ trainer = Trainer(
     args=training_args,
     train_dataset=tokenized_dataset,
 )
-
-batch = next(iter(trainer.get_train_dataloader()))
-print(batch["input_ids"].shape)
-print(batch["labels"].shape)
 
 trainer.train()
