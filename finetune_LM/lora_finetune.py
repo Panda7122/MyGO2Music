@@ -27,7 +27,7 @@ for i in range(len(finetune_data)):
     item = {
         "messages": [
             {"role": "system", "content": system_instruction},
-            {"role": "user", "content": f"Image description: {finetune_data[i]["img_description"]}"},
+            {"role": "user", "content": f"Image description: {finetune_data[i]['img_description']}"},
             {"role": "assistant", "content": finetune_data[i]["song_description"]}
         ]
     }
