@@ -88,7 +88,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_json', type=str, default='prompts.json', help='input json file with music prompts')
     parser.add_argument('--method', '-m', type=str, default='SUNO', help='music generation method')
-    parser.add_argument('--output', '-m', type=str, default='./music/baseline_musicgen/', help='music output dir')
+    parser.add_argument('--output', '-o', type=str, default='./music/baseline_musicgen/', help='music output dir')
     args = parser.parse_args()
     output_dir = args.output
     with open(args.input_json, 'r') as f:
