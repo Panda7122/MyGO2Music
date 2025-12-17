@@ -11,3 +11,4 @@ pillow
 torchvision
 laion_clap
 peft
+datasets

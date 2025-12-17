@@ -1,7 +1,13 @@
 import json
+from datasets import Dataset
 from argparse import ArgumentParser
 from peft import LoraConfig, get_peft_model
-from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+from transformers import (
+    AutoModelForCausalLM, 
+    AutoTokenizer, 
+    Trainer, 
+    TrainingArguments
+)
 
 BASE_MODEL_NAME = "Qwen/Qwen3-4B-Instruct-2507"
 
@@ -20,6 +26,21 @@ with open(args.prompts_file, "r") as f:
     prompts_file = json.load(f)
 img_prompts = [item["prompt"] for item in prompts_file]
 
+system_instruction = """You are a creative AI Music Composer. 
+Your task is to convert an image description into a specific AUDIO/MUSIC prompt."""
+
+data_list = []
+for i in range(len(img_names)):
+    item = {
+        "messages": [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": f"Image description: {img_descriptions[i]}"},
+            {"role": "assistant", "content": img_prompts[i]}
+        ]
+    }
+    data_list.append(item)
+
+train_dataset = Dataset.from_list(data_list)
 
 lora_config = LoraConfig(
     r=16,
@@ -40,20 +61,37 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
-
+tokenizer.pad_token = tokenizer.eos_token
 model = get_peft_model(model, lora_config)
 
-text = tokenizer.apply_chat_template(
-    messages,
-    tokenize=False,
-    add_generation_prompt=False
+def format_chat(example):
+    text = tokenizer.apply_chat_template(
+        example["messages"],
+        tokenize=False,
+        add_generation_prompt=False
+    )
+    return {"text": text}
+
+train_dataset = train_dataset.map(
+    format_chat,
+    remove_columns=["messages"]
 )
 
-item = {
-    "instruction": "You are a creative AI Music Composer. Your task is to convert an image description into a specific AUDIO/MUSIC prompt.",
-    "input": "Image description:",
-    "output": ""
-}
+def tokenize(example):
+    out = tokenizer(
+        example["text"],
+        truncation=True,
+        max_length=512,
+        padding="max_length"
+    )
+    out["labels"] = out["input_ids"].copy()
+    return out
+
+tokenized_dataset = train_dataset.map(
+    tokenize,
+    batched=False,
+    remove_columns=["text"]
+)
 
 training_args = TrainingArguments(
     output_dir="./lora_finetuned_model",
@@ -65,13 +103,18 @@ training_args = TrainingArguments(
     bf16=True,
     logging_steps=20,
     save_strategy="epoch",
-    report_to="none"
+    report_to="none",
+    remove_unused_columns=False,
 )
 
 trainer = Trainer(
     model=model,
     args=training_args,
-    train_dataset=train_dataset
+    train_dataset=tokenized_dataset,
 )
+
+batch = next(iter(trainer.get_train_dataloader()))
+print(batch["input_ids"].shape)
+print(batch["labels"].shape)
 
 trainer.train()
