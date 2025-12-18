@@ -69,5 +69,5 @@ for i in tqdm.trange(len(img_names), desc="Computing similarity"):
     }
     result.append(result_item)
 
-with open("CLAP_similarity_result.json", "w") as f:
+with open("CLAP_similarity_result_fma.json", "w") as f:
     json.dump(result, f, indent=2, ensure_ascii=False)
