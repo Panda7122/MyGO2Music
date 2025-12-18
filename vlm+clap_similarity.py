@@ -9,15 +9,25 @@ import torch.nn.functional as F
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument("audio_folder", type=str)
-parser.add_argument("vlm_result_path", type=str)
+parser.add_argument("--audio_dir", type=str, default='fma_small/')
+parser.add_argument("--vlm_result_path", type=str, default='vlm_retrieval/vlm_result.json')
 args = parser.parse_args()
 
 
-AUDIO_FOLDER = args.audio_folder
+AUDIO_DIR = args.audio_dir
 VLM_RESULT_PATH = args.vlm_result_path
-audio_paths = sorted(glob.glob(os.path.join(AUDIO_FOLDER, "*")))
-audio_names = [os.path.split(path)[-1] for path in audio_paths]
+AUDIO_EXTENSIONS = ('.mp3', '.wav')
+
+audio_paths = []
+audio_names = []
+for dirpath, dirnames, filenames in os.walk(AUDIO_DIR):
+    for f in filenames:
+        file_path = os.path.join(dirpath, f)
+        if os.path.isfile(file_path) and file_path.lower().endswith(AUDIO_EXTENSIONS):
+            audio_paths.append(file_path)
+
+audio_paths = sorted(audio_paths)
+audio_names = [os.path.basename(path) for path in audio_paths]
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
