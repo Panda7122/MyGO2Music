@@ -1,4 +1,3 @@
-import utils
 import librosa
 import os
 from transformers import AutoProcessor, AudioFlamingo3ForConditionalGeneration
@@ -17,16 +16,13 @@ AUDIO_DIR = './'
 AUDIO_EXTENSIONS = ('.mp3', '.wav')
 
 audio_files = []
-for item in os.listdir(AUDIO_DIR):
-    item_path = os.path.join(AUDIO_DIR, item)
-    print(item_path)
-    if os.path.isfile(item_path) and item_path.lower().endswith(AUDIO_EXTENSIONS):
-        audio_files.append(item_path)
-    elif os.path.isdir(item_path):
-        for sub_item in os.listdir(item_path):
-            sub_item_path = os.path.join(item_path, sub_item)
-            if os.path.isfile(sub_item_path) and sub_item_path.lower().endswith(AUDIO_EXTENSIONS):
-                audio_files.append(sub_item_path)
+for dirpath, dirnames, filenames in os.walk(AUDIO_DIR):
+    for f in filenames:
+        file_path = os.path.join(dirpath, f)
+        if os.path.isfile(file_path) and file_path.lower().endswith(AUDIO_EXTENSIONS):
+            audio_files.append(file_path)
+        
+print(len(audio_files))
                 
 # model = Qwen2AudioForConditionalGeneration.from_pretrained("Qwen/Qwen2-Audio-7B" ,
 #                                                            trust_remote_code=True, 
@@ -76,5 +72,5 @@ for file in tqdm(audio_files, desc='Audio files'):
     except Exception as e:
         print(f"Failed handling {file}: {e}")
 df = pd.DataFrame(result)
-df.to_csv(f"description_fma_AF3.csv", index=True)
+df.to_csv(f"alm_retrieval/description_fma_AF3.csv", index=True)
 print("Done")

@@ -4,12 +4,23 @@ import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 from transformers import CLIPProcessor, CLIPModel, CLIPConfig, CLIPTextModelWithProjection, AutoTokenizer
+import argparse
 
-IMAGE_FOLDER = "mygo_image"
-CSV_FILE = "description_fma_AF3.csv"
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--image_dir", type=str, default='mygo_image/')
+    parser.add_argument("--desc_file", type=str, default='alm_retrieval/description_fma_AF3.csv')
+    parser.add_argument("--output", type=str, default='clip_similarity_results_fma.csv')
+    args = parser.parse_args()
+    return args
+
+args = parse_args()
+
+IMAGE_FOLDER = args.image_dir
+CSV_FILE = args.desc_file
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 100
-#dtype = 
+OUTPUT_FILE = args.output
 
 # Load Long CLIP
 model_id = ("zer0int/LongCLIP-GmP-ViT-L-14")
@@ -73,5 +84,5 @@ for image_file in tqdm(os.listdir(IMAGE_FOLDER)):
 
 # Save results
 out_df = pd.DataFrame(results)
-out_df.to_csv("clip_similarity_results_fma.csv", index=False)
+out_df.to_csv(OUTPUT_FILE, index=False)
 

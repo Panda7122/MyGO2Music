@@ -4,7 +4,7 @@ import ast
 import os
 
 clip_similarity_result = pd.read_csv("clip_similarity_results_fma.csv")
-fma_description_result = pd.read_csv("description_fma_AF3.csv")
+fma_description_result = pd.read_csv("alm_retrieval/description_fma_AF3.csv")
 
 with open("vlm_retrieval/vlm_result.json", "r") as f:
     vlm_result = json.load(f)
