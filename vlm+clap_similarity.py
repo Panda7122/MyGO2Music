@@ -5,6 +5,7 @@ import tqdm
 import torch
 import laion_clap
 import numpy as np
+import librosa
 import torch.nn.functional as F
 from argparse import ArgumentParser
 
@@ -19,7 +20,6 @@ VLM_RESULT_PATH = args.vlm_result_path
 AUDIO_EXTENSIONS = ('.mp3', '.wav')
 
 audio_paths = []
-audio_names = []
 for dirpath, dirnames, filenames in os.walk(AUDIO_DIR):
     for f in filenames:
         file_path = os.path.join(dirpath, f)
@@ -27,7 +27,6 @@ for dirpath, dirnames, filenames in os.walk(AUDIO_DIR):
             audio_paths.append(file_path)
 
 audio_paths = sorted(audio_paths)
-audio_names = [os.path.basename(path) for path in audio_paths]
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -43,28 +42,46 @@ with open(VLM_RESULT_PATH, "r") as f:
 img_names = [item["name"] for item in vlm_result]
 img_descriptions = [item["description"] for item in vlm_result]
 
+audio_embeddings = []
+processed_audio_paths = []
+for file_path in tqdm.tqdm(audio_paths, desc="Encoding audio files"):
+    try:
+        audio_data, _ = librosa.load(file_path, sr=48000)
+        audio_data = audio_data.reshape(1, -1)
+        with torch.no_grad():
+            embed = model.get_audio_embedding_from_data(audio_data, use_tensor=False)
+            embed = np.squeeze(embed)
+        processed_audio_paths.append(file_path)
+        audio_embeddings.append(embed)
+    except:
+        print(f"Exception happened when encoding {os.path.basename(file_path)}, skipped.")
+
+audio_embeddings = torch.tensor(np.array(audio_embeddings))
 with torch.no_grad():
-    audio_embed = model.get_audio_embedding_from_filelist(audio_paths, use_tensor=True).to(DEVICE)
+    audio_embeddings = F.normalize(audio_embeddings, dim=1).to(DEVICE)
+audio_names = [os.path.basename(path) for path in processed_audio_paths]
+
+
+with torch.no_grad():
+    # audio_embed = model.get_audio_embedding_from_filelist(audio_paths, use_tensor=True).to(DEVICE)
     texts_embed = model.get_text_embedding(img_descriptions, use_tensor=True).to(DEVICE)
-    audio_embed = F.normalize(audio_embed, dim=1)
     texts_embed = F.normalize(texts_embed, dim=1)
 
-print("audio_embed shape:", audio_embed.shape)
+print("audio_embed shape:", audio_embeddings.shape)
 print("texts_embed shape:", texts_embed.shape)
-
 
 result = []
 for i in tqdm.trange(len(img_names), desc="Computing similarity"):
     embed = texts_embed[i]
-    embed_repeat = embed.unsqueeze(0).repeat(len(audio_embed), 1)
-    sim = F.cosine_similarity(embed_repeat, audio_embed, dim=1)
+    embed_repeat = embed.unsqueeze(0).repeat(len(audio_embeddings), 1)
+    sim = F.cosine_similarity(embed_repeat, audio_embeddings, dim=1)
 
     
     top_3_values, top_3_idx = torch.topk(sim, 3)
 
     result_item = {
         "img_name": img_names[i],
-        "top_3_songs": [audio_names[idx] for idx in top_3_idx],
+        "top_3_songs": [audio_names[int(idx)] for idx in top_3_idx],
         "top_3_scores": [round(val.item(), 4) for val in top_3_values],
     }
     result.append(result_item)
