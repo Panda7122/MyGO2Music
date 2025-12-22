@@ -26,3 +26,6 @@ git+https://github.com/huggingface/transformers
 accelerate
 pillow
 torchvision
+
+datasets
+peft

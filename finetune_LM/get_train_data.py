@@ -2,18 +2,33 @@ import json
 import pandas as pd
 import ast
 import os
+import argparse
 
-clip_similarity_result = pd.read_csv("clip_similarity_results_fma.csv")
+parser = argparse.ArgumentParser()
+parser.add_argument("--method", type=str, default='clip_similarity', choices=['clip_similarity', 'clap_similarity'])
+parser.add_argument("--output", type=str, default='finetune_LM/finetune_data.json')
+args = parser.parse_args()
+
+# Get similarity results
+if args.method == 'clip_similarity':
+    similarity_result = pd.read_csv("clip_similarity_results_fma.csv")
+    imgs = similarity_result["image"].tolist()
+    imgs = [os.path.splitext(name)[0] for name in imgs]
+    top_3_songs = similarity_result["top_3_songs"].tolist()
+    top_1_songs = [ast.literal_eval(item)[0] for item in top_3_songs]
+elif args.method == 'clap_similarity':
+    with open("CLAP_similarity_result_fma.json", "r") as f:
+        similarity_result = json.load(f)
+    imgs = [item["img_name"] for item in similarity_result]
+    top_1_songs = [item["top_3_songs"][0] for item in similarity_result]
+
+# Get image descriptions and fma song descriptions
 fma_description_result = pd.read_csv("alm_retrieval/description_fma_AF3.csv")
+
 
 with open("vlm_retrieval/vlm_result.json", "r") as f:
     vlm_result = json.load(f)
 img_to_description = {item["name"]: item["description"] for item in vlm_result}
-
-imgs = clip_similarity_result["image"].tolist()
-imgs = [os.path.splitext(name)[0] for name in imgs]
-top_3_songs = clip_similarity_result["top_3_songs"].tolist()
-top_1_songs = [ast.literal_eval(item)[0] for item in top_3_songs]
 
 fma_song_name = fma_description_result["song name"].tolist()
 fma_descriptions = fma_description_result["description"].tolist()
@@ -30,5 +45,5 @@ for i in range(len(imgs)):
     }
     data.append(item)
 
-with open("finetune_LM/finetune_data.json", "w") as f:
+with open(args.output, "w") as f:
     json.dump(data, f, indent=2, ensure_ascii=False)

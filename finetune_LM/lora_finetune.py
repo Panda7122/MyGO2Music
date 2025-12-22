@@ -12,7 +12,8 @@ from transformers import (
 BASE_MODEL_NAME = "Qwen/Qwen3-4B-Instruct-2507"
 
 parser = ArgumentParser()
-parser.add_argument("finetune_data", type=str)
+parser.add_argument("--finetune_data", "-d", type=str, default="finetune_data.json")
+parser.add_argument("--output_dir", "-o", type=str, default="./lora_finetuned_model")
 args = parser.parse_args()
 
 # create dataset
@@ -87,7 +88,7 @@ tokenized_dataset = train_dataset.map(
 )
 
 training_args = TrainingArguments(
-    output_dir="./lora_finetuned_model",
+    output_dir=args.output_dir,
     per_device_train_batch_size=2,
     gradient_accumulation_steps=8,
     learning_rate=2e-4,
