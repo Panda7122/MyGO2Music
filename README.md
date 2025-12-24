@@ -9,17 +9,21 @@
 - **GPU (Recommended):** NVIDIA RTX 3090 or above, at least 24GB VRAM, CUDA support  
 - **Operating System:** Arch Linux x86_64(Linux 6.16.10-zen1-1-zen)
 - **Python Version:** 3.10.10  
-- 
+
 ## Envirment set up
 
 we use python version **3.10.10**
+
 please prepare a virtual envirment for this python version
+
 and use `pip3 install -r requirements.txt` and `pip3 install -r ./vlm_retrieval/requirements.txt` for build up the envirment
+
 if you want to use suno as music generater, please set up `.env` file looks like
 
 ```
 SUNO_API_TOKEN=<your api token>
 ```
+
 ## Data preparation
 Get MyGO!!!!! images to play (images are saved to `mygo_image`):
 ```
@@ -50,8 +54,11 @@ then run `python3 music_generator.py --input_json prompt.json --method MusicGen 
 ## stage 3
 
 for finetune the model
+
 please run `python3 finetune_LM/get_train_data.py` to preset dataset
+
 and run `python3 finetune_LM/lora_finetune.py` to finetune lm(it will save model to `./lora_finetuned_model/`)
-please run `python3 prompt_gen.py` for generate the prompt for all image caption that generate in stage 1
+
+run `python3 prompt_gen.py` for generate the prompt for all image caption that generate in stage 1
 
 then run `python3 music_generator.py --input_json prompts_finetune.json --method MusicGen --output ./music/finetune/` for generate with musicgen(if you want to use SUNO, replace "MusicGen" to SUNO)
