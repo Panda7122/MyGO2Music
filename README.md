@@ -1,5 +1,4 @@
 # MyGO2Music: Generate Music for Anime memes
-[FMA]: 
 
 ## Minimum Hardware Requirements
 
@@ -14,22 +13,26 @@
 
 Python version: **3.10.10**
 
-To install required packages, run
-```
-pip3 install -r requirements.txt
+We recommend using a virtual environment for managing dependencies. To install required packages, run
+
+```sh
+pip install -r requirements.txt
 ```
 
 If you want to use Suno as the music generater, set up the environment variable `SUNO_API_TOKEN`. For example:
 
-```
+```sh
 export SUNO_API_TOKEN=<your api token>
 ```
 
 ## Data preparation
+
 Get MyGO!!!!! images to play (images are saved to `mygo_image`):
-```
+
+```python
 python get_mygo_image.py
 ```
+
 We use [Free Music Archive](https://freemusicarchive.org) as our dataset to finetune our prompt generating LM. Feel free to try out other music datasets.
 
 ## Code
