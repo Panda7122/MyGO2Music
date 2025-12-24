@@ -6,13 +6,22 @@ import torch
 from tqdm import tqdm
 import pandas as pd
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--audio_dir", type=str, default='fma_small/')
+    parser.add_argument("--output", type=str, default='alm_retrieval/description_fma_AF3.csv')
+    args = parser.parse_args()
+    return args
+
+args = parse_args()
+
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_quant_type="nf4",
     bnb_4bit_compute_dtype=torch.float16,
 )
 
-AUDIO_DIR = './'
+AUDIO_DIR = args.audio_dir
 AUDIO_EXTENSIONS = ('.mp3', '.wav')
 
 audio_files = []
@@ -72,5 +81,5 @@ for file in tqdm(audio_files, desc='Audio files'):
     except Exception as e:
         print(f"Failed handling {file}: {e}")
 df = pd.DataFrame(result)
-df.to_csv(f"alm_retrieval/description_fma_AF3.csv", index=True)
+df.to_csv(args.output, index=True)
 print("Done")
