@@ -1,5 +1,15 @@
 # MyGO2Music: Generate Music for Anime memes
 [FMA]: 
+
+## Minimum Hardware Requirements
+
+- **CPU:** AMD Ryzen 5 7500 or equivalent and above (6 cores, 12 threads)
+- **Memory:** 16GB RAM or more  
+- **Storage:** At least 32GB (for datasets and models)  
+- **GPU (Recommended):** NVIDIA RTX 3090 or above, at least 24GB VRAM, CUDA support  
+- **Operating System:** Arch Linux x86_64(Linux 6.16.10-zen1-1-zen)
+- **Python Version:** 3.10.10  
+- 
 ## Envirment set up
 
 we use python version **3.10.10**
@@ -10,7 +20,6 @@ if you want to use suno as music generater, please set up `.env` file looks like
 ```
 SUNO_API_TOKEN=<your api token>
 ```
-
 ## Data preparation
 Get MyGO!!!!! images to play (images are saved to `mygo_image`):
 ```
