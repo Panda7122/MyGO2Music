@@ -1,5 +1,7 @@
 # MyGO2Music: Generate Music for Anime memes
 
+all result is saved at `result/`
+
 ## Minimum Hardware Requirements
 
 - **CPU:** AMD Ryzen 5 7500 or equivalent and above (6 cores, 12 threads)
